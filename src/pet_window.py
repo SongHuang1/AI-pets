@@ -1,7 +1,8 @@
-from PySide6.QtWidgets import QMainWindow, QMenu
+from PySide6.QtWidgets import QMainWindow, QMenu, QApplication
 from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QPainter, QPen
 from src.setting import Settings
+from src.settings_dialog import SettingsDialog
 
 class DesktopPet(QMainWindow):
     def __init__(self):
@@ -9,20 +10,24 @@ class DesktopPet(QMainWindow):
         self.settings = Settings()
         self._dragging = False
         self.initUI()
-        
+
     def initUI(self):
-        self.setFixedSize(200, 200)
-        # 用户也许可以修改窗口大小
+        width, height = self.settings.get_window_size()
+        self.setFixedSize(width, height)
         self.update_window_flags()
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.set_initial_position()
         self._drag_position = QPoint()
 
     def set_initial_position(self):
-        # 默认出现位置也可以修改，但是只设置四个角上的数据就行
-        screen_geometry = self.screen().geometry()
-        x = screen_geometry.width() - self.width() - 20
-        y = screen_geometry.height() - self.height() - 20
+        x, y = self.settings.get_window_position()
+        if x is None or y is None:
+            screen_geometry = self.screen().geometry()
+            x = screen_geometry.width() - self.width() - 20
+            y = screen_geometry.height() - self.height() - 20
+        else:
+            x = int(x)
+            y = int(y)
         self.move(x, y)
 
     def update_window_flags(self):
@@ -39,7 +44,9 @@ class DesktopPet(QMainWindow):
         always_on_top_action.setCheckable(True)
         always_on_top_action.setChecked(self.settings.get_always_on_top())
         always_on_top_action.triggered.connect(self.toggle_always_on_top)
-        
+
+        settings_action = menu.addAction("设置")
+        settings_action.triggered.connect(self.open_settings_dialog)
 
         exit_action = menu.addAction("退出")
         exit_action.triggered.connect(self.close)
@@ -51,6 +58,14 @@ class DesktopPet(QMainWindow):
         self.settings.set_always_on_top(not current)
         self.update_window_flags()
         self.show()
+
+    def open_settings_dialog(self):
+        dialog = SettingsDialog(self.settings, self)
+        if dialog.exec_():
+            width, height = self.settings.get_window_size()
+            self.setFixedSize(width, height)
+            self.set_initial_position()
+            self.update_window_flags()
 
     def mousePressEvent(self, event):
         # 单击还有动画播放，这里是不是没设计好
@@ -66,6 +81,10 @@ class DesktopPet(QMainWindow):
 
     def mouseReleaseEvent(self, event):
         self._dragging = False
+
+    def closeEvent(self, event):
+        event.accept()
+        QApplication.quit()
 
     def paintEvent(self, event):
         # 暂时先用在这里当替代吧

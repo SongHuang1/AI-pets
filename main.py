@@ -6,9 +6,9 @@ def main():
     app = QApplication(sys.argv)
     pet = DesktopPet()
     pet.show()
-    sys.exit(app.exec())
+    pet.destroyed.connect(app.quit)
+    return_value = app.exec()
+    sys.exit(return_value)
 
 if __name__ == '__main__':
     main()
-
-# 目前的bug是，在右键单击关闭之后，python程序不会退出
