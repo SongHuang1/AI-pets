@@ -1,5 +1,6 @@
 
-from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, QPushButton, QComboBox, QApplication
+from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, 
+                              QPushButton, QComboBox, QApplication, QMessageBox)
 from PySide6.QtCore import Qt, QPoint
 
 class SettingsDialog(QDialog):
@@ -65,9 +66,15 @@ class SettingsDialog(QDialog):
         save_button.clicked.connect(self.save_settings)
         cancel_button = QPushButton("取消")
         cancel_button.clicked.connect(self.reject)
-
+        
+        # 添加删除数据按钮
+        delete_button = QPushButton("删除所有数据")
+        delete_button.setObjectName("delete_button")
+        delete_button.clicked.connect(self.confirm_delete_data)
+        
         button_layout.addWidget(save_button)
         button_layout.addWidget(cancel_button)
+        button_layout.addWidget(delete_button)
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
@@ -97,3 +104,29 @@ class SettingsDialog(QDialog):
         if self.parent():
             self.parent().move(x, y)
         self.accept()
+    
+    def confirm_delete_data(self):
+        """确认删除数据"""
+        reply = QMessageBox.question(
+            self, 
+            "确认删除", 
+            "确定要删除所有使用数据吗？此操作不可撤销。",
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            self.delete_data()
+    
+    def delete_data(self):
+        """删除所有数据"""
+        self.settings.delete_all_data()
+        QMessageBox.information(
+            self, 
+            "删除成功", 
+            "所有数据已成功删除。程序即将退出。"
+        )
+        self.accept()
+        # 关闭应用程序
+        if self.parent():
+            self.parent().close()

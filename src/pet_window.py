@@ -3,12 +3,15 @@ from PySide6.QtCore import Qt, QPoint
 from PySide6.QtGui import QPainter, QPen
 from src.setting import Settings
 from src.settings_dialog import SettingsDialog
+from src.usage_stats_dialog import UsageStatsDialog
+from src.usage_tracker import UsageTracker
 
 class DesktopPet(QMainWindow):
     def __init__(self):
         super().__init__()
         self.settings = Settings()
         self._dragging = False
+        self.usage_tracker = UsageTracker()
         self.initUI()
 
     def initUI(self):
@@ -47,6 +50,9 @@ class DesktopPet(QMainWindow):
 
         settings_action = menu.addAction("设置")
         settings_action.triggered.connect(self.open_settings_dialog)
+        
+        stats_action = menu.addAction("使用统计")
+        stats_action.triggered.connect(self.show_usage_stats)
 
         exit_action = menu.addAction("退出")
         exit_action.triggered.connect(self.close)
@@ -66,6 +72,10 @@ class DesktopPet(QMainWindow):
             self.setFixedSize(width, height)
             self.set_initial_position()
             self.update_window_flags()
+    
+    def show_usage_stats(self):
+        stats_dialog = UsageStatsDialog(self)
+        stats_dialog.exec_()
 
     def mousePressEvent(self, event):
         # 单击还有动画播放，这里是不是没设计好
