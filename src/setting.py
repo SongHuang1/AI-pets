@@ -39,12 +39,10 @@ class Settings:
         return x, y
     
     def delete_all_data(self):
-        """删除所有数据文件"""
         data_dir = os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation), "DesktopPet")
         if os.path.exists(data_dir):
             shutil.rmtree(data_dir)
-            
-        # 重新创建基本设置文件
+
         config_path = os.path.join(data_dir, "settings.ini")
         self.settings = QSettings(config_path, QSettings.IniFormat)
         self.settings.setValue("always_on_top", False)

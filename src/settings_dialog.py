@@ -67,7 +67,6 @@ class SettingsDialog(QDialog):
         cancel_button = QPushButton("取消")
         cancel_button.clicked.connect(self.reject)
         
-        # 添加删除数据按钮
         delete_button = QPushButton("删除所有数据")
         delete_button.setObjectName("delete_button")
         delete_button.clicked.connect(self.confirm_delete_data)
@@ -106,7 +105,6 @@ class SettingsDialog(QDialog):
         self.accept()
     
     def confirm_delete_data(self):
-        """确认删除数据"""
         reply = QMessageBox.question(
             self, 
             "确认删除", 
@@ -119,7 +117,6 @@ class SettingsDialog(QDialog):
             self.delete_data()
     
     def delete_data(self):
-        """删除所有数据"""
         self.settings.delete_all_data()
         QMessageBox.information(
             self, 
@@ -127,6 +124,5 @@ class SettingsDialog(QDialog):
             "所有数据已成功删除。程序即将退出。"
         )
         self.accept()
-        # 关闭应用程序
         if self.parent():
             self.parent().close()
