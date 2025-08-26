@@ -266,12 +266,11 @@ class UsageTracker:
         active_processes = self.get_active_processes()
         for pid, proc_data in active_processes.items():
             if pid in self.current_processes:
-                cpu_time_diff = (
+                time_increment = (
                     proc_data['cpu_time'].user - self.current_processes[pid]['cpu_time'].user +
                     proc_data['cpu_time'].system - self.current_processes[pid]['cpu_time'].system
                 )
 
-                time_increment = cpu_time_diff
                 software_name = proc_data.get('software_name', proc_data['name'])
                 self.usage_data[software_name]['total_time'] += time_increment
 
@@ -299,14 +298,12 @@ class UsageTracker:
         self.monitoring_thread.start()
     
     def _monitoring_loop(self):
-        """后台监控循环"""
         while True:
             try:
                 self.update_process_data()
                 time.sleep(5)
             except Exception as e:
-                if "audiodg.exe" not in str(e):
-                    print(f"监控过程中发生错误: {e}")
+                print(f"监控过程中发生错误: {e}")
                 time.sleep(10)
 
     def get_recent_usage(self, days=7):

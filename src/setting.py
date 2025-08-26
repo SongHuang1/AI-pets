@@ -14,6 +14,7 @@ class Settings:
             self.settings.setValue("window_width", 200)
             self.settings.setValue("window_height", 200)
 
+# ===================窗口大小与位置设置=====================
     def set_always_on_top(self, value):
         self.settings.setValue("always_on_top", value)
 
@@ -38,6 +39,7 @@ class Settings:
         y = self.settings.value("window_y", None)
         return x, y
     
+    # ==================删除所有数据=====================
     def delete_all_data(self):
         data_dir = os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation), "DesktopPet")
         if os.path.exists(data_dir):

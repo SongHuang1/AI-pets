@@ -6,7 +6,11 @@ from src.settings_dialog import SettingsDialog
 from src.usage_stats_dialog import UsageStatsDialog
 from src.usage_tracker import UsageTracker
 
+
+# 目前，宠物窗口类共有以下功能模块：初始化代码、位置设置代码、设置菜单部分、桌宠形态部分
+
 class DesktopPet(QMainWindow):
+    # ===================初始化阶段========================
     def __init__(self):
         super().__init__()
         self.settings = Settings()
@@ -19,18 +23,21 @@ class DesktopPet(QMainWindow):
         self.setFixedSize(width, height)
         self.update_window_flags()
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.set_initial_position()
+        self.set_position()
         self._drag_position = QPoint()
 
-    def set_initial_position(self):
+    # ================位置设置代码===================
+    def set_position(self):
         x, y = self.settings.get_window_position()
         if x is None or y is None:
             screen_geometry = self.screen().geometry()
             x = screen_geometry.width() - self.width() - 20
             y = screen_geometry.height() - self.height() - 20
         else:
-            x = int(x)
-            y = int(y)
+            try:
+                x, y = int(x), int(y)
+            except:
+                raise TypeError("不合法的输入")
         self.move(x, y)
 
     def update_window_flags(self):
@@ -39,7 +46,18 @@ class DesktopPet(QMainWindow):
             flags |= Qt.WindowStaysOnTopHint
         self.setWindowFlags(flags)
         self.setAttribute(Qt.WA_TranslucentBackground)
+    
+    def toggle_always_on_top(self):
+        current = self.settings.get_always_on_top()
+        self.settings.set_always_on_top(not current)
+        self.update_window_flags()
+        self.show()
+    
+    def closeEvent(self, event):
+        event.accept()
+        QApplication.quit()
 
+    # ====================设置菜单部分====================
     def contextMenuEvent(self, event):
         menu = QMenu(self)
 
@@ -59,24 +77,21 @@ class DesktopPet(QMainWindow):
 
         menu.exec_(event.globalPos())
 
-    def toggle_always_on_top(self):
-        current = self.settings.get_always_on_top()
-        self.settings.set_always_on_top(not current)
-        self.update_window_flags()
-        self.show()
+
 
     def open_settings_dialog(self):
         dialog = SettingsDialog(self.settings, self)
         if dialog.exec_():
             width, height = self.settings.get_window_size()
             self.setFixedSize(width, height)
-            self.set_initial_position()
+            self.set_position()
             self.update_window_flags()
     
     def show_usage_stats(self):
         stats_dialog = UsageStatsDialog(self)
         stats_dialog.exec_()
 
+    # =================桌宠形态主要控件==================
     def mousePressEvent(self, event):
         # 单击还有动画播放，这里是不是没设计好
         if event.button() == Qt.LeftButton:
@@ -84,6 +99,7 @@ class DesktopPet(QMainWindow):
             self._drag_position = event.globalPosition().toPoint() - self.pos()
             event.accept()
 
+    # 鼠标点击主要控件
     def mouseMoveEvent(self, event):
         if self._dragging:
             self.move(event.globalPosition().toPoint() - self._drag_position)
@@ -92,9 +108,7 @@ class DesktopPet(QMainWindow):
     def mouseReleaseEvent(self, event):
         self._dragging = False
 
-    def closeEvent(self, event):
-        event.accept()
-        QApplication.quit()
+
 
     def paintEvent(self, event):
         # 暂时先用在这里当替代吧

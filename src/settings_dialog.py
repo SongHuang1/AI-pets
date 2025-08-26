@@ -13,7 +13,7 @@ class SettingsDialog(QDialog):
 
     def initUI(self):
         layout = QVBoxLayout()
-
+        # ===================设置窗口大小和位置========================
         size_layout = QHBoxLayout()
         size_layout.addWidget(QLabel("窗口宽度:"))
 
@@ -44,17 +44,18 @@ class SettingsDialog(QDialog):
                 current_x = int(current_x)
                 current_y = int(current_y)
                 screen_geometry = QApplication.primaryScreen().geometry()
+                # 给窗口大小修改留下可能的空隙
                 window_width = self.settings.get_window_size()[0]
                 window_height = self.settings.get_window_size()[1]
                 
                 if current_x <= 20 and current_y <= 20:
-                    self.position_combo.setCurrentIndex(0)
+                    self.position_combo.setCurrentIndex(0) # 左上角
                 elif current_x >= screen_geometry.width() - window_width - 20 and current_y <= 20:
-                    self.position_combo.setCurrentIndex(1)
+                    self.position_combo.setCurrentIndex(1) # 右上角
                 elif current_x <= 20 and current_y >= screen_geometry.height() - window_height - 20:
-                    self.position_combo.setCurrentIndex(2)
+                    self.position_combo.setCurrentIndex(2)  # 左下角
                 else:
-                    self.position_combo.setCurrentIndex(3)
+                    self.position_combo.setCurrentIndex(3)  # 右下角
             except (ValueError, TypeError):
                 self.position_combo.setCurrentIndex(3)
         
@@ -66,7 +67,9 @@ class SettingsDialog(QDialog):
         save_button.clicked.connect(self.save_settings)
         cancel_button = QPushButton("取消")
         cancel_button.clicked.connect(self.reject)
+
         
+        # =============数据删除================
         delete_button = QPushButton("删除所有数据")
         delete_button.setObjectName("delete_button")
         delete_button.clicked.connect(self.confirm_delete_data)
