@@ -2,6 +2,7 @@
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox, 
                               QPushButton, QComboBox, QApplication, QMessageBox)
 from PySide6.QtCore import Qt, QPoint
+from src.pet_renderer import PetRendererFactory
 
 class SettingsDialog(QDialog):
     def __init__(self, settings, parent=None):
@@ -62,6 +63,25 @@ class SettingsDialog(QDialog):
         position_layout.addWidget(self.position_combo)
         layout.addLayout(position_layout)
 
+        # ===================伴侣形象选择========================
+        pet_layout = QHBoxLayout()
+        pet_layout.addWidget(QLabel("伴侣形象:"))
+
+        self.pet_combo = QComboBox()
+        renderer_names = PetRendererFactory.get_renderer_names()
+        for key, name in renderer_names.items():
+            self.pet_combo.addItem(name, key)
+        
+        # 设置当前选择的伴侣形象
+        current_pet_type = self.settings.get_pet_type()
+        for i in range(self.pet_combo.count()):
+            if self.pet_combo.itemData(i) == current_pet_type:
+                self.pet_combo.setCurrentIndex(i)
+                break
+        
+        pet_layout.addWidget(self.pet_combo)
+        layout.addLayout(pet_layout)
+
         button_layout = QHBoxLayout()
         save_button = QPushButton("保存")
         save_button.clicked.connect(self.save_settings)
@@ -80,6 +100,9 @@ class SettingsDialog(QDialog):
         layout.addLayout(button_layout)
 
         self.setLayout(layout)
+        
+        # 增加对话框高度以容纳新的控件
+        self.setFixedSize(300, 250)
 
     def save_settings(self):
         width = self.width_spin.value()
@@ -103,6 +126,11 @@ class SettingsDialog(QDialog):
             y = screen_geometry.height() - height - 60
 
         self.settings.set_window_position(x, y)
+        
+        # 保存伴侣形象类型
+        pet_type = self.pet_combo.currentData()
+        self.settings.set_pet_type(pet_type)
+        
         if self.parent():
             self.parent().move(x, y)
         self.accept()

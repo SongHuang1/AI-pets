@@ -1,10 +1,11 @@
 from PySide6.QtWidgets import QMainWindow, QMenu, QApplication
-from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QPainter, QPen
+from PySide6.QtCore import Qt, QPoint, QTimer
+from PySide6.QtGui import QPainter
 from src.setting import Settings
 from src.settings_dialog import SettingsDialog
 from src.usage_stats_dialog import UsageStatsDialog
 from src.usage_tracker import UsageTracker
+from src.pet_renderer import PetRendererFactory
 
 
 # 目前，宠物窗口类共有以下功能模块：初始化代码、位置设置代码、设置菜单部分、桌宠形态部分
@@ -16,6 +17,9 @@ class DesktopPet(QMainWindow):
         self.settings = Settings()
         self._dragging = False
         self.usage_tracker = UsageTracker()
+        self._pet_renderer = None
+        self._refresh_timer = QTimer()
+        self._refresh_timer.timeout.connect(self.update)
         self.initUI()
 
     def initUI(self):
@@ -25,6 +29,22 @@ class DesktopPet(QMainWindow):
         self.setAttribute(Qt.WA_TranslucentBackground)
         self.set_position()
         self._drag_position = QPoint()
+        
+        # 初始化伴侣形象渲染器
+        self._init_pet_renderer()
+        
+        # 启动刷新定时器（60fps）
+        self._refresh_timer.start(16)
+
+    def _init_pet_renderer(self):
+        """初始化伴侣形象渲染器"""
+        pet_type = self.settings.get_pet_type()
+        try:
+            self._pet_renderer = PetRendererFactory.create_renderer(pet_type)
+        except ValueError:
+            # 如果指定的类型不存在，使用默认类型
+            self._pet_renderer = PetRendererFactory.create_renderer("cute_cat")
+            self.settings.set_pet_type("cute_cat")
 
     # ================位置设置代码===================
     def set_position(self):
@@ -86,6 +106,8 @@ class DesktopPet(QMainWindow):
             self.setFixedSize(width, height)
             self.set_position()
             self.update_window_flags()
+            # 重新初始化伴侣形象渲染器
+            self._init_pet_renderer()
     
     def show_usage_stats(self):
         stats_dialog = UsageStatsDialog(self)
@@ -111,9 +133,14 @@ class DesktopPet(QMainWindow):
 
 
     def paintEvent(self, event):
-        # 暂时先用在这里当替代吧
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(QPen(Qt.black, 2))
-        painter.setBrush(Qt.white)
-        painter.drawEllipse(10, 10, 180, 180)
+        """绘制伴侣形象"""
+        if self._pet_renderer:
+            painter = QPainter(self)
+            self._pet_renderer.paint(painter, self.width(), self.height())
+        else:
+            # 如果渲染器未初始化，显示默认的白色圆圈
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.Antialiasing)
+            painter.setPen(Qt.NoPen)
+            painter.setBrush(Qt.white)
+            painter.drawEllipse(0, 0, self.width(), self.height())
