@@ -33,11 +33,16 @@ class DesktopPet(QMainWindow):
         # 初始化伴侣形象渲染器
         self._init_pet_renderer()
         
-        # 启动刷新定时器（60fps）
-        self._refresh_timer.start(16)
+        # 启动刷新定时器（20fps），在保证动画流畅的同时降低CPU占用
+        self._refresh_timer.start(50)
 
     def _init_pet_renderer(self):
         """初始化伴侣形象渲染器"""
+        # 停止旧渲染器的定时器，防止内存泄漏
+        if self._pet_renderer is not None:
+            self._pet_renderer._animation_timer.stop()
+            self._pet_renderer._blink_timer.stop()
+        
         pet_type = self.settings.get_pet_type()
         try:
             self._pet_renderer = PetRendererFactory.create_renderer(pet_type)
