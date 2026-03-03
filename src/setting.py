@@ -13,7 +13,6 @@ class Settings:
             self.settings.setValue("always_on_top", False)
             self.settings.setValue("window_width", 200)
             self.settings.setValue("window_height", 200)
-            self.settings.setValue("pet_type", "cute_cat")
 
 # ===================窗口大小与位置设置=====================
     def set_always_on_top(self, value):
@@ -51,13 +50,3 @@ class Settings:
         self.settings.setValue("always_on_top", False)
         self.settings.setValue("window_width", 200)
         self.settings.setValue("window_height", 200)
-        self.settings.setValue("pet_type", "cute_cat")
-
-    # ==================伴侣形象设置=====================
-    def set_pet_type(self, pet_type: str):
-        """设置伴侣形象类型"""
-        self.settings.setValue("pet_type", pet_type)
-
-    def get_pet_type(self) -> str:
-        """获取伴侣形象类型"""
-        return self.settings.value("pet_type", "cute_cat", str)
