@@ -50,3 +50,22 @@ class Settings:
         self.settings.setValue("always_on_top", False)
         self.settings.setValue("window_width", 200)
         self.settings.setValue("window_height", 200)
+
+    # ==================API Key 配置=====================
+    def set_api_key(self, api_key):
+        self.settings.setValue("api_key", api_key)
+
+    def get_api_key(self):
+        return self.settings.value("api_key", "", str)
+
+    def set_api_base_url(self, base_url):
+        self.settings.setValue("api_base_url", base_url)
+
+    def get_api_base_url(self):
+        return self.settings.value("api_base_url", "https://api.openai.com/v1", str)
+
+    def set_api_model(self, model):
+        self.settings.setValue("api_model", model)
+
+    def get_api_model(self):
+        return self.settings.value("api_model", "gpt-3.5-turbo", str)

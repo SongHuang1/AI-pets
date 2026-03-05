@@ -1,6 +1,6 @@
 
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, QSpinBox,
-                              QPushButton, QComboBox, QApplication, QMessageBox)
+                              QPushButton, QComboBox, QApplication, QMessageBox, QLineEdit, QGroupBox, QFormLayout)
 from PySide6.QtCore import Qt, QPoint
 
 class SettingsDialog(QDialog):
@@ -8,7 +8,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.settings = settings
         self.setWindowTitle("设置")
-        self.setFixedSize(300, 200)
+        self.setFixedSize(400, 380)
         self.initUI()
 
     def initUI(self):
@@ -79,6 +79,30 @@ class SettingsDialog(QDialog):
         button_layout.addWidget(delete_button)
         layout.addLayout(button_layout)
 
+        # ===================AI 设置分组========================
+        ai_group = QGroupBox("AI 设置")
+        ai_layout = QFormLayout()
+
+        self.api_key_input = QLineEdit()
+        self.api_key_input.setEchoMode(QLineEdit.Password)
+        self.api_key_input.setPlaceholderText("输入 API Key")
+        self.api_key_input.setText(self.settings.get_api_key())
+
+        self.api_base_url_input = QLineEdit()
+        self.api_base_url_input.setPlaceholderText("https://api.openai.com/v1")
+        self.api_base_url_input.setText(self.settings.get_api_base_url())
+
+        self.api_model_input = QLineEdit()
+        self.api_model_input.setPlaceholderText("gpt-3.5-turbo")
+        self.api_model_input.setText(self.settings.get_api_model())
+
+        ai_layout.addRow("API Key:", self.api_key_input)
+        ai_layout.addRow("Base URL:", self.api_base_url_input)
+        ai_layout.addRow("Model:", self.api_model_input)
+
+        ai_group.setLayout(ai_layout)
+        layout.addWidget(ai_group)
+
         self.setLayout(layout)
 
     def save_settings(self):
@@ -103,6 +127,18 @@ class SettingsDialog(QDialog):
             y = screen_geometry.height() - height - 60
 
         self.settings.set_window_position(x, y)
+
+        # 保存 AI 设置
+        api_key = self.api_key_input.text().strip()
+        api_base_url = self.api_base_url_input.text().strip()
+        api_model = self.api_model_input.text().strip()
+
+        if api_key:
+            self.settings.set_api_key(api_key)
+        if api_base_url:
+            self.settings.set_api_base_url(api_base_url)
+        if api_model:
+            self.settings.set_api_model(api_model)
 
         if self.parent():
             self.parent().move(x, y)

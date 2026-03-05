@@ -5,6 +5,7 @@ from src.setting import Settings
 from src.settings_dialog import SettingsDialog
 from src.usage_stats_dialog import UsageStatsDialog
 from src.usage_tracker import UsageTracker
+from src.ai_chat_dialog import AIChatDialog
 
 
 class DesktopPet(QMainWindow):
@@ -63,6 +64,9 @@ class DesktopPet(QMainWindow):
         always_on_top_action.setChecked(self.settings.get_always_on_top())
         always_on_top_action.triggered.connect(self.toggle_always_on_top)
 
+        ai_chat_action = menu.addAction("AI 对话")
+        ai_chat_action.triggered.connect(self.open_ai_chat)
+
         settings_action = menu.addAction("设置")
         settings_action.triggered.connect(self.open_settings_dialog)
         
@@ -87,6 +91,10 @@ class DesktopPet(QMainWindow):
     def show_usage_stats(self):
         stats_dialog = UsageStatsDialog(self)
         stats_dialog.exec_()
+
+    def open_ai_chat(self):
+        ai_chat_dialog = AIChatDialog(self.settings, self)
+        ai_chat_dialog.exec_()
 
     # =================桌宠形态主要控件==================
     def mousePressEvent(self, event):
