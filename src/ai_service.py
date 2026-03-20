@@ -3,18 +3,13 @@ from typing import List, Dict, Optional
 
 
 class AIService:
-    def __init__(self, api_key: str, base_url: str, model: str):
-        self.api_key = api_key
-        self.base_url = base_url.rstrip('/')
-        self.model = model
-        self.timeout = 30
+    def __init__(self, api_key: str, base_url: str, model: str) -> None:
+        self.api_key: str = api_key
+        self.base_url: str = base_url.rstrip('/')
+        self.model: str = model
+        self.timeout: int = 30
 
-    def chat(self, messages: List[Dict]) -> str:
-        """
-        调用 AI API 进行对话
-        messages: [{"role": "user/assistant/system", "content": "..."}]
-        return: AI 的回复文本
-        """
+    def chat(self, messages: List[Dict[str, str]]) -> str:
         url = f"{self.base_url}/chat/completions"
         headers = {
             "Authorization": f"Bearer {self.api_key}",

@@ -13,7 +13,6 @@ class SettingsDialog(QDialog):
 
     def initUI(self):
         layout = QVBoxLayout()
-        # ===================设置窗口大小和位置========================
         size_layout = QHBoxLayout()
         size_layout.addWidget(QLabel("窗口宽度:"))
 
@@ -69,7 +68,6 @@ class SettingsDialog(QDialog):
         cancel_button.clicked.connect(self.reject)
 
         
-        # =============数据删除================
         delete_button = QPushButton("删除所有数据")
         delete_button.setObjectName("delete_button")
         delete_button.clicked.connect(self.confirm_delete_data)
@@ -79,7 +77,6 @@ class SettingsDialog(QDialog):
         button_layout.addWidget(delete_button)
         layout.addLayout(button_layout)
 
-        # ===================AI 设置分组========================
         ai_group = QGroupBox("AI 设置")
         ai_layout = QFormLayout()
 

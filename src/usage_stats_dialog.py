@@ -1,4 +1,5 @@
 
+from typing import Optional, Dict, Any
 from PySide6.QtWidgets import (QDialog, QVBoxLayout, QHBoxLayout, QLabel, 
                               QTableWidget, QTableWidgetItem, QHeaderView, 
                               QPushButton, QTabWidget, QProgressBar, QWidget, QScrollArea)
@@ -8,11 +9,11 @@ import datetime
 from .usage_tracker import UsageTracker
 
 class UsageStatsDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, tracker: Optional[UsageTracker] = None, parent=None) -> None:
         super().__init__(parent)
+        self.tracker = tracker if tracker else UsageTracker()
         self.setWindowTitle("电脑使用统计")
         self.setFixedSize(600, 500)
-        self.tracker = UsageTracker()
 
         self.initUI()
         self.update_timer = QTimer(self)
@@ -20,7 +21,7 @@ class UsageStatsDialog(QDialog):
         self.update_timer.start(5000)
         self.update_data()
 
-    def initUI(self):
+    def initUI(self) -> None:
         layout = QVBoxLayout()
         self.tab_widget = QTabWidget()
         self.create_overview_tab()
@@ -30,7 +31,7 @@ class UsageStatsDialog(QDialog):
         layout.addWidget(self.tab_widget)
         self.setLayout(layout)
 
-    def create_overview_tab(self):
+    def create_overview_tab(self) -> None:
         self.overview_tab = QWidget()
         layout = QVBoxLayout()
 
@@ -71,7 +72,7 @@ class UsageStatsDialog(QDialog):
 
         self.overview_tab.setLayout(layout)
 
-    def create_apps_tab(self):
+    def create_apps_tab(self) -> None:
         self.apps_tab = QWidget()
         layout = QVBoxLayout()
         title = QLabel("当天应用使用情况")
@@ -94,12 +95,12 @@ class UsageStatsDialog(QDialog):
 
         self.apps_tab.setLayout(layout)
 
-    def update_data(self):
+    def update_data(self) -> None:
         recent_usage = self.tracker.get_recent_usage(days=7)
         self.update_overview_tab(recent_usage)
         self.update_apps_tab(recent_usage)
 
-    def update_overview_tab(self, recent_usage):
+    def update_overview_tab(self, recent_usage: Dict[str, Any]) -> None:
         self.daily_usage_table.setRowCount(0)
         total_minutes = 0
         sorted_dates = sorted(recent_usage["total_daily_usage"].items(), reverse=True)
@@ -145,7 +146,7 @@ class UsageStatsDialog(QDialog):
             time_label.setText(f"{minutes:.1f} 分钟")
             time_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
-    def update_apps_tab(self, recent_usage):
+    def update_apps_tab(self, recent_usage: Dict[str, Any]) -> None:
         top_apps = self.tracker.get_top_apps(limit=None, days=1)
         self.apps_table.setRowCount(0)
         if top_apps:

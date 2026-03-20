@@ -209,3 +209,6 @@ AGENTS.md
 # AI-pets specific
 pet_env/
 targets.md
+
+# TRAE AI Agent
+.trae/

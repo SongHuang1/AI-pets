@@ -24,7 +24,6 @@ class DesktopPet(QMainWindow):
         self.set_position()
         self._drag_position = QPoint()
 
-    # ================位置设置代码===================
     def set_position(self):
         x, y = self.settings.get_window_position()
         if x is None or y is None:
@@ -55,7 +54,6 @@ class DesktopPet(QMainWindow):
         event.accept()
         QApplication.quit()
 
-    # ====================设置菜单部分====================
     def contextMenuEvent(self, event):
         menu = QMenu(self)
 
@@ -89,22 +87,19 @@ class DesktopPet(QMainWindow):
             self.update_window_flags()
     
     def show_usage_stats(self):
-        stats_dialog = UsageStatsDialog(self)
+        stats_dialog = UsageStatsDialog(self.usage_tracker, self)
         stats_dialog.exec_()
 
     def open_ai_chat(self):
         ai_chat_dialog = AIChatDialog(self.settings, self)
         ai_chat_dialog.exec_()
 
-    # =================桌宠形态主要控件==================
     def mousePressEvent(self, event):
-        # 单击还有动画播放，这里是不是没设计好
         if event.button() == Qt.LeftButton:
             self._dragging = True
             self._drag_position = event.globalPosition().toPoint() - self.pos()
             event.accept()
 
-    # 鼠标点击主要控件
     def mouseMoveEvent(self, event):
         if self._dragging:
             self.move(event.globalPosition().toPoint() - self._drag_position)
@@ -112,8 +107,6 @@ class DesktopPet(QMainWindow):
 
     def mouseReleaseEvent(self, event):
         self._dragging = False
-
-
 
     def paintEvent(self, event):
         painter = QPainter(self)

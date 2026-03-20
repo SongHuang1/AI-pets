@@ -37,7 +37,6 @@ class AIChatDialog(QDialog):
 
         layout = QVBoxLayout()
 
-        # 对话历史区域
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_widget = QWidget()
@@ -48,7 +47,6 @@ class AIChatDialog(QDialog):
 
         layout.addWidget(self.scroll_area, 1)
 
-        # 输入区域
         input_layout = QHBoxLayout()
         self.input_edit = QTextEdit()
         self.input_edit.setMaximumHeight(60)
@@ -69,7 +67,6 @@ class AIChatDialog(QDialog):
 
         self.setLayout(layout)
 
-        # 检查 API Key 是否已配置
         if not self.settings.get_api_key():
             self.add_message("系统", "请先在设置中配置 API Key")
 
@@ -84,7 +81,6 @@ class AIChatDialog(QDialog):
         return super().eventFilter(obj, event)
 
     def add_message(self, role: str, content: str):
-        """添加消息到对话历史"""
         message_label = QLabel(content)
         message_label.setWordWrap(True)
         message_label.setTextFormat(Qt.PlainText)
@@ -127,7 +123,6 @@ class AIChatDialog(QDialog):
         container.setLayout(container_layout)
         self.scroll_layout.addWidget(container)
 
-        # 滚动到底部
         self.scroll_area.verticalScrollBar().setValue(
             self.scroll_area.verticalScrollBar().maximum()
         )
@@ -137,20 +132,19 @@ class AIChatDialog(QDialog):
         if not user_input:
             return
 
-        # 检查 API Key
         api_key = self.settings.get_api_key()
         if not api_key:
             self.add_message("系统", "请先在设置中配置 API Key")
             return
 
-        # 添加用户消息
+        if self.worker and self.worker.isRunning():
+            return
+
         self.add_message("用户", user_input)
         self.input_edit.clear()
 
-        # 添加到消息列表
         self.messages.append({"role": "user", "content": user_input})
 
-        # 显示加载状态
         loading_label = QLabel("AI 正在思考...")
         loading_label.setStyleSheet("font-style: italic; color: #666;")
         loading_container = QWidget()
@@ -164,36 +158,30 @@ class AIChatDialog(QDialog):
             self.scroll_area.verticalScrollBar().maximum()
         )
 
-        # 创建 AI 服务
         ai_service = AIService(
             api_key=api_key,
             base_url=self.settings.get_api_base_url(),
             model=self.settings.get_api_model()
         )
 
-        # 启动工作线程
         self.worker = AIChatWorker(ai_service, self.messages.copy())
         self.worker.finished.connect(lambda response: self.on_response(response, loading_container))
         self.worker.error.connect(lambda error: self.on_error(error, loading_container))
+        self.worker.finished.connect(self.worker.deleteLater)
         self.worker.start()
 
     def on_response(self, response: str, loading_container: QWidget):
-        """处理 AI 响应"""
-        # 移除加载标签
         loading_container.setParent(None)
-
-        # 添加 AI 响应
         self.add_message("AI", response)
         self.messages.append({"role": "assistant", "content": response})
+        self.worker = None
 
     def on_error(self, error: str, loading_container: QWidget):
-        """处理错误"""
         loading_container.setParent(None)
         self.add_message("系统", f"发生错误: {error}")
+        self.worker = None
 
     def clear_history(self):
-        """清空对话历史"""
-        # 移除所有消息控件
         while self.scroll_layout.count():
             item = self.scroll_layout.takeAt(0)
             if item.widget():

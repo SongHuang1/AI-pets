@@ -10,6 +10,33 @@ from collections import defaultdict
 from PySide6.QtCore import QStandardPaths, QTimer
 
 class UsageTracker:
+    SYSTEM_DIRS = frozenset([
+        os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'System32'),
+        os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'SysWOW64'),
+        os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'System'),
+        os.path.join(os.environ.get('ProgramFiles', r'C:\Program Files'), 'Windows Defender'),
+        os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'), 'Windows Defender')
+    ])
+    
+    SYSTEM_KEYWORDS = frozenset([
+        'system', 'windows', 'microsoft', 'svchost', 'csrss', 'lsass',
+        'wininit', 'services', 'smss', 'winlogon', 'rundll32', 'dllhost',
+        'audiodg', 'fontdrvhost', 'wudfhost', 'consol', 'powershell',
+        'cmd', 'explorer', 'dwm', 'sihost', 'taskhost'
+    ])
+    
+    SYSTEM_PROCESSES = frozenset([
+        'wudfhost.exe', 'mbamessagecenter.exe', 'mbam.exe', 'mbamservice.exe',
+        'mbamtray.exe', 'mbamupdates.exe', 'conhost.exe', 'wininit.exe',
+        'csrss.exe', 'lsass.exe', 'lsm.exe', 'svchost.exe', 'services.exe',
+        'smss.exe', 'winlogon.exe', 'userinit.exe', 'explorer.exe',
+        'taskmgr.exe', 'dwm.exe', 'sihost.exe', 'taskhost.exe',
+        'taskhostex.exe', 'rundll32.exe', 'dllhost.exe', 'audiodg.exe',
+        'fontdrvhost.exe', 'spoolsv.exe', 'lexbces.exe', 'jusched.exe',
+        'jucheck.exe', 'googleupdate.exe', 'chrome.exe', 'firefox.exe',
+        'msedge.exe', 'steam.exe', 'discord.exe',
+    ])
+
     def __init__(self):
         self.data_dir = os.path.join(QStandardPaths.writableLocation(QStandardPaths.AppDataLocation), "DesktopPet")
         if not os.path.exists(self.data_dir):
@@ -112,71 +139,17 @@ class UsageTracker:
             return True
 
         exe_full_path = os.path.normpath(exe_path).lower()
-        system_dirs = [
-            os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'System32'),
-            os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'SysWOW64'),
-            os.path.join(os.environ.get('SystemRoot', r'C:\Windows'), 'System'),
-            os.path.join(os.environ.get('ProgramFiles', r'C:\Program Files'), 'Windows Defender'),
-            os.path.join(os.environ.get('ProgramFiles(x86)', r'C:\Program Files (x86)'), 'Windows Defender')
-        ]
         
-        for sys_dir in system_dirs:
+        for sys_dir in self.SYSTEM_DIRS:
             if exe_full_path.startswith(sys_dir.lower()):
                 return True
 
-        system_keywords = [
-            'system', 'windows', 'microsoft', 'svchost', 'csrss', 'lsass', 
-            'wininit', 'services', 'smss', 'winlogon', 'rundll32', 'dllhost',
-            'audiodg', 'fontdrvhost', 'wudfhost', 'consol', 'powershell',
-            'cmd', 'explorer', 'dwm', 'sihost', 'taskhost', 'services'
-        ]
-        
-        additional_system_processes = [
-            'wudfhost.exe',  # Windows User Mode Driver Framework Host
-            'mbamessagecenter.exe',  # Malwarebytes Message Center
-            'mbam.exe',  # Malwarebytes
-            'mbamservice.exe',  # Malwarebytes Service
-            'mbamtray.exe',  # Malwarebytes Tray
-            'mbamupdates.exe',  # Malwarebytes Updates
-            'conhost.exe',  # Console Host
-            'wininit.exe',  # Windows Initialization
-            'csrss.exe',  # Client Server Runtime Process
-            'lsass.exe',  # Local Security Authority Subsystem
-            'lsm.exe',  # Local Session Manager
-            'svchost.exe',  # Host Process for Windows Services
-            'services.exe',  # Windows Services
-            'smss.exe',  # Windows Session Manager
-            'winlogon.exe',  # Windows Logon Application
-            'userinit.exe',  # Windows Logon Application
-            'explorer.exe',  # Windows Explorer
-            'taskmgr.exe',  # Windows Task Manager
-            'dwm.exe',  # Desktop Window Manager
-            'sihost.exe',  # System Host
-            'taskhost.exe',  # Host Process for Windows Tasks
-            'taskhostex.exe',  # Host Process for Windows Tasks
-            'rundll32.exe',  # Windows Host Process
-            'dllhost.exe',  # COM+ Application
-            'audiodg.exe',  # Windows Audio Device Graph
-            'fontdrvhost.exe',  # Font Driver Host
-            'svchost.exe',  # Host Process for Windows Services
-            'spoolsv.exe',  # Print Spooler
-            'lexbces.exe',  # Lexmark BCES Service
-            'lexbces.exe',  # Lexmark BCES Service
-            'jusched.exe',  # Java Update Scheduler
-            'jucheck.exe',  # Java Update Checker
-            'googleupdate.exe',  # Google Update
-            'chrome.exe',  # Google Chrome (helper processes)
-            'firefox.exe',  # Firefox (helper processes)
-            'msedge.exe',  # Microsoft Edge (helper processes)
-            'steam.exe',  # Steam (helper processes)
-            'discord.exe',  # Discord (helper processes)
-        ]
-        
         proc_name_lower = proc_name.lower()
 
-        if proc_name_lower in [p.lower() for p in additional_system_processes]:
+        if proc_name_lower in self.SYSTEM_PROCESSES:
             return True
-        for keyword in system_keywords:
+        
+        for keyword in self.SYSTEM_KEYWORDS:
             if keyword in proc_name_lower:
                 return True
                 
@@ -184,7 +157,7 @@ class UsageTracker:
             cmdline = psutil.Process(pid).cmdline()
             if cmdline and any('system' in arg.lower() or 'windows' in arg.lower() for arg in cmdline):
                 return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
                 
         try:
@@ -192,26 +165,26 @@ class UsageTracker:
             if parent:
                 parent_proc = psutil.Process(parent)
                 parent_name = parent_proc.name().lower()
-                if any(keyword in parent_name for keyword in system_keywords):
+                if any(keyword in parent_name for keyword in self.SYSTEM_KEYWORDS):
                     return True
                     
                 try:
                     parent_exe = parent_proc.exe()
                     if parent_exe:
                         parent_exe_path = os.path.normpath(parent_exe).lower()
-                        for sys_dir in system_dirs:
+                        for sys_dir in self.SYSTEM_DIRS:
                             if parent_exe_path.startswith(sys_dir.lower()):
                                 return True
-                except (psutil.AccessDenied, psutil.NoSuchProcess):
+                except (psutil.AccessDenied, psutil.NoSuchProcess, psutil.ZombieProcess):
                     pass
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
             
         try:
             proc_username = psutil.Process(pid).username()
             if proc_username and ('SYSTEM' in proc_username or 'LOCAL SERVICE' in proc_username or 'NETWORK SERVICE' in proc_username):
                 return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
             
         return False
