@@ -1,6 +1,7 @@
 import sys
 import win32gui
 import win32con
+import win32event
 import win32api
 import winerror
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -12,12 +13,12 @@ MUTEX_NAME = "DesktopPet_SingleInstance_Mutex"
 def check_single_instance():
     """检测程序是否已有实例在运行"""
     try:
-        mutex = win32api.CreateMutex(None, False, MUTEX_NAME)
-        if win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
+        mutex = win32event.CreateMutex(None, False, MUTEX_NAME)
+        if mutex and win32api.GetLastError() == winerror.ERROR_ALREADY_EXISTS:
             return False
         return True
-    except (win32api.error, WindowsError) as e:
-        print(f"单实例检测失败: {e}")
+    except Exception as e:
+        print(f"单实例检测失败：{e}")
         return True
 
 def hide_console_window():

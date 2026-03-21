@@ -1,11 +1,12 @@
 from PySide6.QtWidgets import QMainWindow, QMenu, QApplication
 from PySide6.QtCore import Qt, QPoint
-from PySide6.QtGui import QPainter
+from PySide6.QtGui import QPainter, QImage
 from src.setting import Settings
 from src.settings_dialog import SettingsDialog
 from src.usage_stats_dialog import UsageStatsDialog
 from src.usage_tracker import UsageTracker
 from src.ai_chat_dialog import AIChatDialog
+from src.rescourse import Resources
 
 
 class DesktopPet(QMainWindow):
@@ -14,6 +15,7 @@ class DesktopPet(QMainWindow):
         self.settings = Settings()
         self._dragging = False
         self.usage_tracker = UsageTracker()
+        self.resources = Resources()
         self.initUI()
 
     def initUI(self):
@@ -111,6 +113,16 @@ class DesktopPet(QMainWindow):
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        painter.setPen(Qt.NoPen)
-        painter.setBrush(Qt.white)
-        painter.drawEllipse(0, 0, self.width(), self.height())
+        
+        # 获取当前宠物图像
+        image = self.resources.get_current_image()
+        
+        # 缩放图像以适应窗口大小
+        scaled_image = image.scaled(self.width(), self.height(), 
+                                     Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        
+        # 计算居中位置
+        x = (self.width() - scaled_image.width()) // 2
+        y = (self.height() - scaled_image.height()) // 2
+        
+        painter.drawImage(x, y, scaled_image)
